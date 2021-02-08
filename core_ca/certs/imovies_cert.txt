@@ -1,0 +1,56 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=root@imovies.ch, O=iMovies AG
+        Validity
+            Not Before: Nov 19 16:38:30 2020 GMT
+            Not After : Nov 18 16:38:30 2025 GMT
+        Subject: CN=user_ca@imovies.ch, O=iMovies AG/emailAddress=user_ca@imovies.ch
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:cf:de:90:74:5f:18:52:4c:4e:d2:87:9d:a1:8d:
+                    2f:a7:3f:ab:df:af:ff:e3:d3:18:2a:d1:e8:00:02:
+                    51:41:a0:3b:50:4e:1c:dd:65:7a:1b:6f:3f:9a:69:
+                    de:58:c1:de:ca:32:f1:c6:ff:e9:4f:06:7d:19:0b:
+                    7a:a7:fb:39:da:e0:c0:58:0a:40:d3:31:f4:27:73:
+                    41:85:25:c7:48:52:9c:bf:77:4d:6e:3a:30:75:2b:
+                    3b:62:a6:9c:87:8f:16:d5:03:ce:e5:18:fc:a7:19:
+                    75:5e:1b:e1:e3:f6:da:3c:08:7a:74:25:66:b6:75:
+                    bf:6a:91:e6:f3:06:47:4f:ae:d7:9e:49:13:fe:71:
+                    22:03:38:67:4b:45:ac:3a:da:86:35:70:ec:ef:7a:
+                    2c:20:d3:f6:38:28:1d:bf:9a:2b:09:0c:0a:75:bd:
+                    ab:73:a2:4b:92:ee:a2:2a:99:c7:10:bc:8c:03:78:
+                    2f:71:5c:24:0c:6d:07:4d:98:8c:eb:29:e1:57:b8:
+                    02:6b:a6:50:58:df:77:8d:db:07:6d:f9:3b:c9:fb:
+                    3c:8a:05:7d:a5:cd:67:6a:1d:05:f3:23:fb:4b:e0:
+                    b0:3d:76:de:56:b5:96:62:ea:a5:46:a8:b3:22:aa:
+                    98:f1:73:6d:c0:cc:13:0c:aa:83:13:b0:5f:53:e6:
+                    92:e5
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE, pathlen:0
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+            X509v3 Subject Key Identifier: 
+                7A:21:A6:19:95:A0:EB:E8:41:55:FF:DE:D0:8C:D4:85:EC:4B:90:90
+    Signature Algorithm: sha256WithRSAEncryption
+         5b:43:d3:be:30:a1:1e:95:94:63:63:09:4b:1c:71:a9:20:c6:
+         77:6a:36:b6:51:e2:9c:e3:2d:7b:58:ee:22:0d:dd:5d:45:dc:
+         71:03:29:1c:60:e2:29:af:2f:e4:11:af:d8:24:0a:6b:1a:17:
+         94:5e:6c:3f:51:f2:04:17:0b:6a:46:95:12:17:87:06:04:88:
+         c9:2b:2b:ea:88:4b:1d:64:ab:b0:71:e2:4f:ea:76:62:2a:d1:
+         51:45:d8:90:ca:d8:bf:88:67:2a:ea:7d:50:af:07:51:47:f4:
+         23:7f:de:91:3d:38:fb:55:94:48:3c:0e:41:20:ca:a6:1f:37:
+         6e:3b:38:61:c4:3a:e6:34:ec:21:16:45:9c:ef:36:38:26:94:
+         69:50:ba:f9:9e:93:91:9d:c7:b9:57:f4:7c:89:c4:d9:74:26:
+         c1:a6:d3:dc:30:c6:51:70:0a:36:58:c3:59:ea:75:42:85:50:
+         c3:a3:7a:fc:e6:2d:da:f9:2b:3a:f1:7f:e3:ac:12:50:e4:3e:
+         3b:d9:fd:b5:ac:4f:28:de:5f:85:32:c4:d2:c5:88:f8:b5:73:
+         30:22:6f:42:58:90:ab:c4:2c:ce:9d:d3:33:3c:b3:14:b2:32:
+         96:8f:81:de:d1:a4:7c:c5:67:f9:e0:09:92:b4:bd:87:71:8c:
+         e4:e1:df:84

@@ -1,0 +1,390 @@
+- name: Configure DB
+  hosts: dbhost
+  become: true
+  become_method: sudo
+  vars_files:
+    - vars/db.yml
+  roles:
+    - role: mysql
+
+- name: Dump DB
+  hosts: dbhost
+  become: True
+  become_method: sudo
+  tasks:
+    - name: Dump iMovies
+      shell: |
+        mysql -u root -D imovies -p'IqTFqZbhbY' < /home/db/imovies_users.dump
+        mysql -u root -D imovies -p'IqTFqZbhbY' -e "ALTER TABLE users ADD COLUMN admin INT DEFAULT 0;"
+
+- name: Configure CERT
+  hosts: certhost
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Install apt packages
+      apt:
+        pkg:
+        - python3
+        - python3-pip
+        - tree
+        - nginx
+        state: present
+
+    - name: Install python requirements
+      command: pip3 install -r /home/vagrant/core_ca/requirements.txt
+
+    # New 
+    - name: Create gunicorn logs
+      shell: |
+        mkdir /home/vagrant/core_ca/log
+        touch /home/vagrant/core_ca/log/gunicorn.access.log
+        touch /home/vagrant/core_ca/log/gunicorn.error.log
+
+    # New - Another way to to this?
+    - name: Set directory permissions
+      command: chmod -R 777 /home/vagrant/core_ca/log 
+
+    - name: Create gunicorn service
+      command: cp /home/vagrant/core_ca/core_ca.sh /etc/init.d/core_ca
+
+    - name: Create gunicorn service 2
+      command: chmod 755 /etc/init.d/core_ca
+
+    # New - this may be a problem with my windows
+    - name: Delete ^M characters
+      command: sed -i -e 's/\r//g' /etc/init.d/core_ca
+
+    - name: Create gunicorn service 3
+      command: update-rc.d core_ca defaults
+  
+    - name: Start gunicorn service
+      command: service core_ca start
+
+    - name: Start Nginx server
+      shell: |
+        cp /home/vagrant/core_ca/nginx.conf /etc/nginx/sites-available/core_ca
+        ln -s /etc/nginx/sites-available/core_ca /etc/nginx/sites-enabled
+        systemctl restart nginx
+
+- name: Configure Webserver
+  hosts: webserverhost
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Install pip
+      apt:
+        pkg:
+        - python3
+        - python3-pip
+        - tree
+        - default-mysql-server
+        - default-mysql-client
+        - default-libmysqlclient-dev
+        state: present
+
+    - name: Install django
+      command: pip3 install Django
+
+    - name: Install requirements
+      shell: |
+        pip3 install djangorestframework
+        pip3 install markdown
+        pip3 install django-filter
+        pip3 install PyJWT
+        pip3 install python-memcached
+        pip3 install mysqlclient
+        pip3 install pyopenssl
+        pip3 install pybase64
+
+    - name: Boot start memcached
+      command: update-rc.d memcached defaults
+
+    - name: Start memcached
+      command: service memcached start
+
+    - name: Set directory permissions
+      command: chmod -R 777 /home/webserver/debug.log
+
+    - name: Install root certificate
+      shell: |
+        cp /home/webserver/root_cert.pem /usr/local/share/ca-certificates/root_cert.crt
+        update-ca-certificates
+
+    - name: Make migrations
+      shell: |
+        python3 /home/webserver/manage.py makemigrations
+        python3 /home/webserver/manage.py migrate
+
+    - name: Create service
+      command: cp /home/webserver/webserver.sh /etc/init.d/webserver
+
+    - name: Create service 2
+      command: chmod 755 /etc/init.d/webserver
+
+    - name: Delete ^M characters
+      command: sed -i -e 's/\r//g' /etc/init.d/webserver
+
+    - name: Create service 3
+      command: update-rc.d webserver defaults
+
+    - name: Start service
+      command: service webserver start
+
+- hosts: "nwfirewall"
+  become: true
+  become_method: sudo
+  tasks: 
+    - name: update sysctl param
+      sysctl:
+        name: "net.ipv4.ip_forward"
+        value: 1
+        state: present
+        reload: yes
+
+
+
+- name: Configure db firewall
+  hosts: dbhost
+  become: True
+  become_method: sudo
+  vars_files:
+    - vars/fw_db.yml
+  roles:
+    - { role: "nickjj.iptables", tags: "iptables" }
+
+- name: Configure cert firewall
+  hosts: certhost
+  become: True
+  become_method: sudo
+  vars_files:
+    - vars/fw_crthost.yml
+  roles:
+    - { role: "nickjj.iptables", tags: "iptables" }
+
+- name: Configure app server(s)
+  hosts: webserverhost
+  become: True
+  become_method: sudo
+  vars_files:
+    - vars/fw_webserver.yml
+  roles:
+    - { role: "nickjj.iptables", tags: "iptables" }
+
+
+- name: zip
+  hosts: all
+  become: true
+  become_method: sudo
+
+  tasks:
+  - name: Install the package "zip"
+    apt:
+      name: zip
+ 
+
+##### SSH KEY GENERATE #####
+
+- hosts: all
+  become: True
+  become_method: sudo
+  tasks:
+    - name: Generate an OpenSSH rsa keypair with a different size (2048 bits)
+      command : ssh-keygen -q -t rsa -f /home/ansible/.ssh/id_rsa -C "" -N ""
+      args:
+        creates: /home/ansible/.ssh/id_rsa
+
+    - name: test public key
+      shell: ssh-keygen -l -f /home/ansible/.ssh/id_rsa.pub
+      changed_when: false
+
+
+#### Distribute ####
+### CERTHOST
+- hosts: certhost
+  become: True
+  become_method: sudo
+  tasks:
+    - name: retrieve public key
+      shell: cat /home/ansible/.ssh/id_rsa.pub
+      register: master_public_key
+      changed_when: false
+
+- hosts: backuphost
+  become: true
+  become_method: sudo
+  tasks:
+    - name: add master public key to slaves
+      authorized_key:
+        user: ansible
+        state: present
+        key: "{{ hostvars['certhost'].master_public_key.stdout }}"
+
+### DB HOST ###
+- hosts: dbhost
+  become: True
+  become_method: sudo
+  tasks:
+    - name: retrieve public key
+      shell: cat /home/ansible/.ssh/id_rsa.pub
+      register: master_public_key
+      changed_when: false
+
+- hosts: backuphost
+  become: true
+  become_method: sudo
+  tasks:
+    - name: add master public key to slaves
+      authorized_key:
+        user: ansible
+        state: present
+        key: "{{ hostvars['dbhost'].master_public_key.stdout }}"
+
+### NWFIREWALL
+- hosts: nwfirewall
+  become: True
+  become_method: sudo
+  tasks:
+    - name: retrieve public key
+      shell: cat /home/ansible/.ssh/id_rsa.pub
+      register: master_public_key
+      changed_when: false
+
+- hosts: backuphost
+  become: true
+  become_method: sudo
+  tasks:
+    - name: add master public key to slaves
+      authorized_key:
+        user: ansible
+        state: present
+        key: "{{ hostvars['nwfirewall'].master_public_key.stdout }}"
+
+
+### WEBSERVER
+- hosts: webserverhost
+  become: True
+  become_method: sudo
+  tasks:
+    - name: retrieve public key
+      shell: cat /home/ansible/.ssh/id_rsa.pub
+      register: master_public_key
+      changed_when: false
+
+- hosts: backuphost
+  become: true
+  become_method: sudo
+  tasks:
+    - name: add master public key to slaves
+      authorized_key:
+        user: ansible
+        state: present
+        key: "{{ hostvars['webserverhost'].master_public_key.stdout }}"
+#### Required permission
+
+- hosts: all
+  become: true
+  become_method: sudo
+  tasks:
+    - file:
+        path: /home/ansible/.ssh/id_rsa
+        owner: "1001"
+        group: "1001"
+        mode: '0600'
+
+#### CREATE LOG DIRECTORIES
+- hosts: backuphost
+  tasks:
+  - name: Create a directory if it does not exist
+    file:
+      path: /home/ansible/certhost
+      state: directory
+      mode: '0700'
+  - name: Create a directory if it does not exist
+    file:
+      path: /home/ansible/webserverhost
+      state: directory
+      mode: '0700'
+  - name: Create a directory if it does not exist
+    file:
+      path: /home/ansible/dbhost
+      state: directory
+      mode: '0700'
+  - name: Create a directory if it does not exist
+    file:
+      path: /home/ansible/nwfirewall
+      state: directory
+      mode: '0700'
+
+### CRONTAB ###
+
+- name: Ensure a job that runs at 2,14
+  hosts: nwfirewall, webserverhost
+  become: true
+  become_method: sudo
+  tasks:
+    - cron:
+        name: "check dirs"
+        user: ansible
+        minute: "5,10,15,20,25,30,35,40"
+        job: "sudo zip /home/ansible/$(hostname).zip /var/log/auth.log /var/log/syslog && sudo /usr/bin/rsync -a -e '/usr/bin/ssh -i /home/ansible/.ssh/id_rsa -o \"StrictHostKeyChecking no\"' /home/ansible/$(hostname).zip ansible@backuphost:/home/ansible/$(hostname)/$(date +\\%Y-\\%m-\\%d_\\%H:\\%M:\\%S).zip && rm /home/ansible/$(hostname)$(date +\\%Y-\\%m-\\%d_\\%H).zip"
+
+
+### CRONTAB DB ###
+- hosts: dbhost
+  become: true
+  become_method: sudo
+  tasks:
+  - name: Create cron sh
+    copy:
+      dest: "/home/ansible/job.sh"
+      content: |
+        #!/bin/sh
+        mysqldump -u root --databases imovies -p'IqTFqZbhbY' > /home/ansible/imovies_dump.sql
+        sudo zip /home/ansible/$(hostname)$(date +\%Y-\%m-\%d_\%H).zip /var/log/auth.log /var/log/syslog /home/ansible/imovies_dump.sql
+        sudo /usr/bin/rsync -a -e '/usr/bin/ssh -i /home/ansible/.ssh/id_rsa -o "StrictHostKeyChecking no"' /home/ansible/$(hostname)$(date +\%Y-\%m-\%d_\%H).zip ansible@backuphost:/home/ansible/$(hostname)/$(date +\%Y-\%m-\%d_\%H:\%M:\%S).zip
+        rm /home/ansible/$(hostname)$(date +\%Y-\%m-\%d_\%H).zip
+
+  - file:
+      path: /home/ansible/job.sh
+      owner: "1001"
+      group: "1001"
+      mode: '0100'
+
+  - cron:
+      name: "check dirs"
+      user: ansible
+      hour: "2,14"
+      minute: "4"
+      job: "sudo /home/ansible/job.sh"
+
+
+### CRONTAB CERTHOST ###
+- hosts: certhost
+  become: true
+  become_method: sudo
+  tasks:
+  - name: Create cron sh
+    copy:
+      dest: "/home/ansible/job.sh"
+      content: |
+        #!/bin/sh
+        sudo zip -r /home/ansible/$(hostname)$(date +\%Y-\%m-\%d_\%H).zip /var/log/auth.log /var/log/syslog /home/vagrant/core_ca/log/ /home/vagrant/core_ca/certs/
+        sudo /usr/bin/rsync -a -e '/usr/bin/ssh -i /home/ansible/.ssh/id_rsa -o "StrictHostKeyChecking no"' /home/ansible/$(hostname)$(date +\%Y-\%m-\%d_\%H).zip ansible@backuphost:/home/ansible/$(hostname)/$(date +\%Y-\%m-\%d_\%H:\%M).zip
+        rm /home/ansible/$(hostname)$(date +\%Y-\%m-\%d_\%H).zip
+        rm /home/ansible/imovies_dump.sql
+        
+  - file:
+      path: /home/ansible/job.sh
+      owner: "1001"
+      group: "1001"
+      mode: '0100'
+
+  - cron:
+      name: "check dirs"
+      user: ansible
+      hour: "2,14"
+      minute: "5"
+      job: "sudo /home/ansible/job.sh"

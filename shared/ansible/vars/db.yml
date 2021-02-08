@@ -1,0 +1,16 @@
+mysql_root_user: root
+mysql_root_password: IqTFqZbhbY
+
+mysql_databases:
+  - name: imovies
+    encoding: utf8
+
+mysql_users:
+  - name: imovies_user_all
+    host: "%"
+    password: mysecret_all
+    priv: [ "imovies.*:ALL" ]
+  - name: imovies_user_private
+    host: 192.168.33.35
+    password: mysecret_private
+    priv: [ "imovies.*:ALL" ]

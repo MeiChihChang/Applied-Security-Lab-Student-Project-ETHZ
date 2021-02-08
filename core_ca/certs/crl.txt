@@ -1,0 +1,27 @@
+Certificate Revocation List (CRL):
+        Version 2 (0x1)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=user_ca@imovies.ch, O=iMovies AG/emailAddress=user_ca@imovies.ch
+        Last Update: Nov 19 16:39:15 2020 GMT
+        Next Update: NONE
+Revoked Certificates:
+    Serial Number: 00
+        Revocation Date: Nov 19 16:38:54 2020 GMT
+    Serial Number: 01
+        Revocation Date: Nov 19 16:39:15 2020 GMT
+    Signature Algorithm: sha256WithRSAEncryption
+         6b:f1:8a:0c:07:e3:b6:d8:8b:50:db:b9:b7:59:d9:0b:fe:17:
+         a8:61:02:ef:3d:c0:a4:84:a7:34:0d:e2:28:03:bf:d8:63:66:
+         5f:9b:5b:93:98:c9:89:5c:e7:2b:54:77:64:e7:cc:ac:83:f4:
+         9b:3f:e5:9e:46:90:06:ec:6a:ee:e2:e3:61:9d:86:ac:34:61:
+         d3:49:12:8a:10:b0:b0:1f:08:20:af:67:72:b8:dc:ed:82:1b:
+         42:db:95:03:bb:5e:5a:f0:f3:97:49:81:28:01:a8:d9:56:33:
+         51:4f:8e:0f:f7:ca:82:9c:03:2f:35:81:b7:29:fc:7f:c1:8b:
+         09:6c:c2:bd:bb:33:6b:58:7a:de:3a:43:fe:2d:92:7e:68:8a:
+         82:80:f4:00:6d:9e:c9:9d:8a:f2:95:87:34:64:a8:33:c1:bf:
+         dd:05:9a:5d:d4:9d:2d:34:5e:97:6a:71:c2:de:b1:9c:c3:46:
+         41:77:17:a4:de:bb:ee:38:ea:fa:cb:7c:bb:75:71:2c:90:cd:
+         4d:0e:84:6a:0e:37:01:81:cc:70:2c:a2:c9:20:09:64:19:a6:
+         5e:d6:63:e4:ce:c7:84:dd:52:13:c6:e5:75:55:35:a1:11:92:
+         62:ad:03:79:b9:57:32:aa:d4:fc:90:99:57:f2:13:fe:13:10:
+         90:b0:17:45

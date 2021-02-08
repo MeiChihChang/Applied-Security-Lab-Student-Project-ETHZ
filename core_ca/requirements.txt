@@ -1,0 +1,5 @@
+flask
+pybase64
+pyopenssl
+requests
+gunicorn
